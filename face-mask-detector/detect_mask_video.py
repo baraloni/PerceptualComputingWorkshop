@@ -121,19 +121,36 @@ while True:
 		(startX, startY, endX, endY) = box
 		(mask, withoutMask) = pred
 
+		# # determine the class label and color we'll use to draw
+		# # the bounding box and text
+		# label = "Mask" if mask > withoutMask else "No Mask"
+		# color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
+		#
+		# # include the probability in the label
+		# label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
+		#
+		# # display the label and bounding box rectangle on the output
+		# # frame
+		# cv2.putText(frame, label, (startX, startY - 10),
+		# 	cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
+		# cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+
 		# determine the class label and color we'll use to draw
-		# the bounding box and text
-		label = "Mask" if mask > withoutMask else "No Mask"
-		color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
+		# the bounding box
+		color = (0, 128, 0) if mask > withoutMask else (0, 0, 255)
+		label = "You Look GREAT!" if mask > withoutMask else "Please Put Mask On!!!"
 
-		# include the probability in the label
-		label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
+		# display the label and bounding box rectangle on the output frame
+		if mask > withoutMask:
+			cv2.putText(frame, label, (40, 25),
+						cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
+			cv2.putText(frame, "Thank you for keeping safe!", (25, 50),
+					cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2)
+		else:
+			cv2.putText(frame, label, (25, 25),
+						cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
 
-		# display the label and bounding box rectangle on the output
-		# frame
-		cv2.putText(frame, label, (startX, startY - 10),
-			cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
-		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 3)
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
