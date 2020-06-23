@@ -12,7 +12,7 @@ import imutils
 import time
 import cv2
 import os
-
+TRANSPARENCY_ALPHA = 0.3
 
 def detect_and_predict_mask(frame, faceNet, maskNet):
 	# grab the dimensions of the frame and then construct a blob
@@ -81,7 +81,7 @@ ap.add_argument("-f", "--face", type=str,
 	default="face_detector",
 	help="path to face detector model directory")
 ap.add_argument("-m", "--model", type=str,
-	default="mask_detector.model",
+	default="mask_detector0.model",
 	help="path to trained face mask detector model")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
 	help="minimum probability to filter weak detections")
@@ -140,6 +140,9 @@ while True:
 		color = (0, 128, 0) if mask > withoutMask else (0, 0, 255)
 		label = "You Look GREAT!" if mask > withoutMask else "Please Put Mask On!!!"
 
+		overlay = frame.copy()  # transparent background
+		# output = frame.copy()  # output frame
+
 		# display the label and bounding box rectangle on the output frame
 		if mask > withoutMask:
 			cv2.putText(frame, label, (40, 25),
@@ -151,6 +154,10 @@ while True:
 						cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
 
 		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 3)
+
+		cv2.rectangle(overlay, (420, 205), (595, 385), (0, 0, 255), -1)  # transparent layer
+		cv2.addWeighted(overlay, TRANSPARENCY_ALPHA, frame, 1 - TRANSPARENCY_ALPHA, 0, frame)
+
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
