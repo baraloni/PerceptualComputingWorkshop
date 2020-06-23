@@ -107,13 +107,26 @@ time.sleep(2.0)
 
 # add timer
 no_mask_time = 0
+# add image
+mask_icon = cv2.imread('mask_icon_150.png', -1)
+
+def add_mask_icon(mask_icon, frame):
+	y1, y2 = 50, 50 + mask_icon.shape[0]
+	x1, x2 = 320, 320 + mask_icon.shape[1]
+
+	alpha_s = mask_icon[:, :, 3] / 255.0
+	alpha_l = 1.0 - alpha_s
+
+	for c in range(0, 3):
+		frame[y1:y2, x1:x2, c] = (alpha_s * mask_icon[:, :, c] +
+								  alpha_l * frame[y1:y2, x1:x2, c])
 
 # loop over the frames from the video stream
 while True:
 	# grab the frame from the threaded video stream and resize it
 	# to have a maximum width of 400 pixels
 	frame = vs.read()
-	frame = imutils.resize(frame, width=400)
+	frame = imutils.resize(frame, width=800)
 
 	# detect faces in the frame and determine if they are wearing a
 	# face mask or not
@@ -143,12 +156,12 @@ while True:
 		# determine the class label and color we'll use to draw
 		# the bounding box
 		color = (0, 128, 0) if mask > withoutMask else (0, 0, 255)
-		label = "You Look GREAT!" if mask > withoutMask else "Please Put Mask On!!!"
+		label = "You Look GREAT!" if mask > withoutMask else "Please Wear A Mask!!!"
 
-		if label == "Please Put Mask On!!!":
+		if label == "Please Wear A Mask!!!":
 			if not no_mask_time:
 				no_mask_time = time.time()
-			if no_mask_time + 0.5 < time.time():
+			if no_mask_time + 3 < time.time():
 				# playsound('beep_short.wav')
 				sound_thread = Thread(target=lambda: playsound('beep.wav'))
 				sound_thread.start()
@@ -161,19 +174,19 @@ while True:
 
 		# display the label and bounding box rectangle on the output frame
 		if mask > withoutMask:
-			cv2.putText(frame, label, (40, 25),
+			cv2.putText(frame, label, (250, 60),
 						cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
-			cv2.putText(frame, "Thank you for keeping safe!", (25, 50),
+			cv2.putText(frame, "Thank you for staying safe!", (220, 20),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.75, color, 2)
 		else:
-			cv2.putText(frame, label, (25, 25),
-						cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
+			cv2.putText(frame, label, (40, 70),
+						cv2.FONT_HERSHEY_SIMPLEX, 2, color, 5)
+
+			add_mask_icon(mask_icon, frame)
+			cv2.rectangle(overlay, (0, 0), (800, 800), color, -1)  # transparent layer
+			cv2.addWeighted(overlay, TRANSPARENCY_ALPHA, frame, 1 - TRANSPARENCY_ALPHA, 0, frame)
 
 		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 3)
-
-		cv2.rectangle(overlay, (420, 205), (595, 385), (0, 0, 255), -1)  # transparent layer
-		cv2.addWeighted(overlay, TRANSPARENCY_ALPHA, frame, 1 - TRANSPARENCY_ALPHA, 0, frame)
-
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
@@ -182,6 +195,9 @@ while True:
 	# if the `q` key was pressed, break from the loop
 	if key == ord("q"):
 		break
+
+
+
 
 # do a bit of cleanup
 cv2.destroyAllWindows()
