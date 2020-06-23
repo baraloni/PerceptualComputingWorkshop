@@ -12,6 +12,8 @@ import imutils
 import time
 import cv2
 import os
+from playsound import playsound
+from threading import Thread
 TRANSPARENCY_ALPHA = 0.3
 
 def detect_and_predict_mask(frame, faceNet, maskNet):
@@ -81,7 +83,7 @@ ap.add_argument("-f", "--face", type=str,
 	default="face_detector",
 	help="path to face detector model directory")
 ap.add_argument("-m", "--model", type=str,
-	default="mask_detector10.model",
+	default="model10.model",
 	help="path to trained face mask detector model")
 ap.add_argument("-c", "--confidence", type=float, default=0.5,
 	help="minimum probability to filter weak detections")
@@ -102,6 +104,9 @@ maskNet = load_model(args["model"])
 print("[INFO] starting video stream...")
 vs = VideoStream(src=0).start()
 time.sleep(2.0)
+
+# add timer
+no_mask_time = 0
 
 # loop over the frames from the video stream
 while True:
@@ -139,6 +144,17 @@ while True:
 		# the bounding box
 		color = (0, 128, 0) if mask > withoutMask else (0, 0, 255)
 		label = "You Look GREAT!" if mask > withoutMask else "Please Put Mask On!!!"
+
+		if label == "Please Put Mask On!!!":
+			if not no_mask_time:
+				no_mask_time = time.time()
+			if no_mask_time + 0.5 < time.time():
+				# playsound('beep_short.wav')
+				sound_thread = Thread(target=lambda: playsound('beep.wav'))
+				sound_thread.start()
+				no_mask_time = 0
+		else:
+			no_mask_time = 0
 
 		overlay = frame.copy()  # transparent background
 		# output = frame.copy()  # output frame
